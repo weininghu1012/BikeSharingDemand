@@ -1,0 +1,10 @@
+Research Proposal
+ * (5 February) Proposal for team project. Short document of about 2 pages with the research question, the response variable, the explanatory variables, and data sources (compare the examples presented in class). Alos the members of the team. If you already have some data, include some summary statistics for each variable (mean, SD and quantiles for continuous variables and tabular frequencies for categorical variables). You may want to do some plots to check that your data are adequate but this need not be included in the proposal.
+
+Research Question
+The popularity of bike sharing system around the world enable people to rent a bike from one location and return it to a different place on an as-needed basis.During the process, data of every single instance of rental is recorded with features such as that day's weather condition, holiday or working day,season belong to and so forth are recorded. Therefore the data is useful for predicting future using pattern as well as studying the mobility of the city. 
+
+Background information(Description of the data)
+We use data provided by Capital Bikeshare program in Washington.DC, it combines historical usage patterns with weather data.
+Response variable: casual+registered=count
+Explanatory variable: datetime,season,holiday,workingday,weather,temp,atemp,humidity,windspeed
