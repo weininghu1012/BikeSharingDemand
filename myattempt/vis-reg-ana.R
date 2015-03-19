@@ -19,7 +19,7 @@ weather_count = aggregate(train["count"], by=train[c("weather")], FUN=sum)
 hour_count = aggregate(train["count"], by=train[c("hour")], FUN=sum)
 weekday_count = aggregate(train["count"], by = train[c("weekday")], FUN = sum)
 
-season_count
+
 par("mar")
 par(mar=c(0.5,1,1,1))
 par(mfrow=c(3,2))
