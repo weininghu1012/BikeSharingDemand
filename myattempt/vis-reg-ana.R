@@ -85,11 +85,68 @@ subtrain$weekday = as.numeric(subtrain$weekday)
 
 #First try linear model
 fit1 = lm(registered~.,data = subtrain)
-summary(fit1)
+summ1 = summary(fit1)
 
 # Checking Cook's distance for abnormal data or observation
 diagnose = ls.diag(fit1)
 print(diagnose$cook)
 plot(diagnose$cook)
 print(diagnose$dfits)
-# variable slection and creation of explanatory variable
+
+
+# Testing the linear model by residual plot
+#  season holiday workingday weather temp  atemp humidity windspeed (casual registered count) weekday hour
+names(summ1)
+pred = predict(fit1)  # predicted value from fit1 regression model
+res = resid(fit1)     # residuals
+sigma1 = summ1$sigma
+# residual plots
+
+#plot 1 for all variables
+qqnorm(res,main = "normal QQ plot of residuals")
+plot(pred,res,xlab = "predicted value",ylab = "residuals")
+abline(h = 2*sigma1);abline(h = -2*sigma1)
+
+# plot2 for hour
+plot(hour,res,xlab = "predicted hour",ylab = "residuals")
+abline(h = 2*sigma1);abline(h = -2*sigma1)
+
+# plot3 for weekday
+plot(weekday,res,xlab = "weekday",ylab = "residuals")
+abline(h = 2*sigma1);abline(h = -2*sigma1)
+
+# plot4 for windspeed
+plot(windspeed,res,xlab = "windspeed",ylab = "residuals")
+abline(h = 2*sigma1);abline(h = -2*sigma1)
+
+# plot5 for humidity
+plot(humidity,res,xlab = "humidity",ylab = "residuals")
+abline(h = 2*sigma1);abline(h = -2*sigma1)
+
+#plot6 for atemp
+plot(atemp,res,xlab = "atemp",ylab = "residuals")
+abline(h = 2*sigma1);abline(h = -2*sigma1)
+
+#plot7 for temp
+plot(temp,res,xlab = "temp",ylab = "residuals")
+abline(h = 2*sigma1);abline(h = -2*sigma1)
+
+#plot8 for weather
+plot(weather,res,xlab = "weather",ylab = "residuals")
+abline(h = 2*sigma1);abline(h = -2*sigma1)
+
+#plot9 for workingday
+plot(workingday,res,xlab = "workingday",ylab = "residuals")
+abline(h = 2*sigma1);abline(h = -2*sigma1)
+
+#plot10 for holiday
+plot(holiday,res,xlab = "holiday",ylab = "residuals")
+abline(h = 2*sigma1);abline(h = -2*sigma1)
+
+#plot11 for holiday
+plot(season,res,xlab = "season",ylab = "residuals")
+abline(h = 2*sigma1);abline(h = -2*sigma1)
+
+
+
+
