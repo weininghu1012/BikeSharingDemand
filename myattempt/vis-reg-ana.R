@@ -1,6 +1,6 @@
 #Visualization part for evaluating the data
-install.packages('plyr')
-library(plyr)
+install.packages('dplyr')
+library(dplyr)
 library(ggplot2)
 setwd("/Users/apple/Documents/study/R/BikeSharingDemand/myattempt")
 train = read.csv("train.csv")
@@ -30,5 +30,46 @@ we_c_plot = barplot(weather_count$count,names.arg = weather_count$weather,main =
 h_c_plot = barplot(hour_count$count,names.arg = hour_count$hour,main = "count VS hour",xlab = "hour", ylab = "count")
 work_c_plot = barplot(workingday_count$count,names.arg = workingday_count$workingday,main = "count VS workingday",xlab = "workingday", ylab = "count")
 
+# part one for model selection
+# first try some parameters
 
+featureEngineer <- function(df){
+  
+  # Factorize the data
+  names <- c("season", "holiday", "workingday", "weather")
+  df[,names]<-lapply(df[,names],factor)
+  # Extract the day of the week
+  df$datetime <- as.character(df$datetime)
+  df$datetime <- strptime(df$datetime, format = "%Y-%m-%d%T", tz = "EST")
+  #parse the hour 
+  df$hour <- as.integer(substr(df$datetime,12,13))
+  df$hour <- as.factor(df$hour)
+  #get the weekday for each date using weekdays function
+  df$weekday <- as.factor(weekdays(df$datetime))
+  df$weekday <- factor(df$weekday,
+                       levels
+                       =c("Monday",
+                           "Tuesday",
+                           "Wednesday",
+                           "Thursday",
+                           "Friday",
+                           "Saturday",
+                           "Sunday"))
+  #the count also increases as time goes on
+  #add year as a factor into our model
+  df$year <- as.integer(substr(df$datetime,1,4))
+  df$year <- as.factor(df$year)
+  
+  # the count also vary among different time
+  # to be done next time
+  return (df)
+}
 
+train = featureEngineer(train)
+attach(train)
+head(train)
+subtrain = select(train,-datetime)
+fit1 = lm(registered~.,data = subtrain)
+summary(fit1)
+
+# variable slection and creation of explanatory variable
