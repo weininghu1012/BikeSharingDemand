@@ -65,11 +65,31 @@ featureEngineer <- function(df){
   return (df)
 }
 
+
+
+
+
 train = featureEngineer(train)
 attach(train)
 head(train)
+# Kick out 2 variables: datatime and  year
 subtrain = select(train,-datetime)
+subtrain = select(subtrain,-year)
+names(subtrain)
+
+# Turn the categorical variables into numeric
+subtrain$season = as.numeric(subtrain$season)
+subtrain$holiday = as.numeric(subtrain$holiday)
+subtrain$workingday = as.numeric(subtrain$workingday)
+subtrain$weekday = as.numeric(subtrain$weekday)
+
+#First try linear model
 fit1 = lm(registered~.,data = subtrain)
 summary(fit1)
 
+# Checking Cook's distance for abnormal data or observation
+diagnose = ls.diag(fit1)
+print(diagnose$cook)
+plot(diagnose$cook)
+print(diagnose$dfits)
 # variable slection and creation of explanatory variable
