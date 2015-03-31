@@ -191,6 +191,21 @@ plot(holiday,res2,xlab = "holiday",ylab = "residuals",main = "fit2 with casual a
 #plot11 for holiday
 plot(season,res2,xlab = "season",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
 
+
+# Fit4 with improvement on the explanatory variables
+subtrain$logtemp = log(subtrain$temp)
+subtrain$sqrttemp = sqrt(subtrain$temp)
+subtrain$sqrtemp = (subtrain$temp)*(subtrain$temp)
+
+fit4 = lm(casual~season+holiday+workingday+weather+sqrtemp+atemp+humidity+windspeed+weekday+hour+year,data = subtrain)
+summ4 = summary(fit4)
+res4 = summ4$residuals
+sigma4 = summ4$sigma
+
+#plot7 for temp
+plot(subtrain$temp,res4,xlab = "temp",ylab = "residuals",main = "fit4 with casual as response variable");abline(h = 2*sigma4);abline(h = -2*sigma4)
+summ3 = summary(fit3)
+
 detach(train)
 
 # 
