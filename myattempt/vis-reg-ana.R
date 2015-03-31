@@ -83,7 +83,7 @@ subtrain$holiday = as.numeric(subtrain$holiday)
 subtrain$workingday = as.numeric(subtrain$workingday)
 subtrain$weekday = as.numeric(subtrain$weekday)
 
-#First try linear model
+#Fit1: linear model,with response variable as registered
 fit1 = lm(registered~.,data = subtrain)
 summ1 = summary(fit1)
 
@@ -97,55 +97,57 @@ print(diagnose$dfits)
 # Testing the linear model by residual plot
 #  season holiday workingday weather temp  atemp humidity windspeed (casual registered count) weekday hour
 names(summ1)
-pred = predict(fit1)  # predicted value from fit1 regression model
-res = resid(fit1)     # residuals
+pred1 = predict(fit1)  # predicted value from fit1 regression model
+res1 = resid(fit1)     # residuals
 sigma1 = summ1$sigma
 # residual plots
 
 #plot 1 for all variables
-qqnorm(res,main = "normal QQ plot of residuals")
-plot(pred,res,xlab = "predicted value",ylab = "residuals")
+qqnorm(res1,main = "normal QQ plot of residuals")
+plot(pred1,res1,xlab = "predicted value",ylab = "residuals")
 abline(h = 2*sigma1);abline(h = -2*sigma1)
 
 # plot2 for hour
-plot(hour,res,xlab = "predicted hour",ylab = "residuals")
+plot(hour,res1,xlab = "predicted hour",ylab = "residuals")
 abline(h = 2*sigma1);abline(h = -2*sigma1)
 
 # plot3 for weekday
-plot(weekday,res,xlab = "weekday",ylab = "residuals")
+plot(weekday,res1,xlab = "weekday",ylab = "residuals")
 abline(h = 2*sigma1);abline(h = -2*sigma1)
 
 # plot4 for windspeed
-plot(windspeed,res,xlab = "windspeed",ylab = "residuals")
+plot(windspeed,res1,xlab = "windspeed",ylab = "residuals")
 abline(h = 2*sigma1);abline(h = -2*sigma1)
 
 # plot5 for humidity
-plot(humidity,res,xlab = "humidity",ylab = "residuals")
+plot(humidity,res1,xlab = "humidity",ylab = "residuals")
 abline(h = 2*sigma1);abline(h = -2*sigma1)
 
 #plot6 for atemp
-plot(atemp,res,xlab = "atemp",ylab = "residuals")
+plot(atemp,res1,xlab = "atemp",ylab = "residuals")
 abline(h = 2*sigma1);abline(h = -2*sigma1)
 
 #plot7 for temp
-plot(temp,res,xlab = "temp",ylab = "residuals")
+plot(temp,res1,xlab = "temp",ylab = "residuals")
 abline(h = 2*sigma1);abline(h = -2*sigma1)
 
 #plot8 for weather
-plot(weather,res,xlab = "weather",ylab = "residuals")
+plot(weather,res1,xlab = "weather",ylab = "residuals")
 abline(h = 2*sigma1);abline(h = -2*sigma1)
 
 #plot9 for workingday
-plot(workingday,res,xlab = "workingday",ylab = "residuals")
+plot(workingday,res1,xlab = "workingday",ylab = "residuals")
 abline(h = 2*sigma1);abline(h = -2*sigma1)
 
 #plot10 for holiday
-plot(holiday,res,xlab = "holiday",ylab = "residuals")
+plot(holiday,res1,xlab = "holiday",ylab = "residuals")
 abline(h = 2*sigma1);abline(h = -2*sigma1)
 
 #plot11 for holiday
-plot(season,res,xlab = "season",ylab = "residuals")
+plot(season,res1,xlab = "season",ylab = "residuals")
 abline(h = 2*sigma1);abline(h = -2*sigma1)
+
+
 
 
 
