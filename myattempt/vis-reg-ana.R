@@ -73,14 +73,7 @@ featureEngineer <- function(df){
 subtrain = featureEngineer(train)
 attach(subtrain)
 head(subtrain)
-# # Kick out 2 variables: datatime and  year
-# subtrain = select(train,-datetime)
-# subtrain = select(subtrain,-year)
-# subtrain = select(subtrain, -casual)
-# subtrain = select(subtrain, -count)
-# subtrain = select(subtrain, -registered)
-# names(subtrain)
-# 
+
 # Turn the categorical variables into numeric
  subtrain$season = as.numeric(subtrain$season)
  subtrain$holiday = as.numeric(subtrain$holiday)
@@ -107,7 +100,7 @@ sigma1 = summ1$sigma
 # residual plots
 
 #plot 1 for all variables
-qqnorm(res1,main = "normal QQ plot of residuals")
+qqnorm(res1,main = "normal QQ plot of residuals,registered as response variable")
 plot(pred1,res1,xlab = "predicted value",ylab = "residuals")
 abline(h = 2*sigma1);abline(h = -2*sigma1)
 
@@ -165,38 +158,38 @@ sigma2 = summ2$sigma
 # residual plots
 
 #plot 1 for all variables
-qqnorm(res2,main = "normal QQ plot of residuals")
-plot(pred2,res2,xlab = "predicted value",ylab = "residuals",main = "fit1 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
+qqnorm(res2,main = "normal QQ plot of residuals,causal as response variable")
+plot(pred2,res2,xlab = "predicted value",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
 
 # plot2 for hour
-plot(hour,res2,xlab = "predicted hour",ylab = "residuals",main = "fit1 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
+plot(hour,res2,xlab = "predicted hour",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
 
 # plot3 for weekday
-plot(weekday,res2,xlab = "weekday",ylab = "residuals",main = "fit1 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
+plot(weekday,res2,xlab = "weekday",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
 
 # plot4 for windspeed
-plot(windspeed,res2,xlab = "windspeed",ylab = "residuals",main = "fit1 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
+plot(windspeed,res2,xlab = "windspeed",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
 
 # plot5 for humidity
-plot(humidity,res2,xlab = "humidity",ylab = "residuals",main = "fit1 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
+plot(humidity,res2,xlab = "humidity",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
 
 #plot6 for atemp
-plot(atemp,res2,xlab = "atemp",ylab = "residuals",main = "fit1 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
+plot(atemp,res2,xlab = "atemp",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
 
 #plot7 for temp
-plot(temp,res2,xlab = "temp",ylab = "residuals",main = "fit1 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
+plot(temp,res2,xlab = "temp",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
 
 #plot8 for weather
-plot(weather,res2,xlab = "weather",ylab = "residuals",main = "fit1 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
+plot(weather,res2,xlab = "weather",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
 
 #plot9 for workingday
-plot(workingday,res2,xlab = "workingday",ylab = "residuals",main = "fit1 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
+plot(workingday,res2,xlab = "workingday",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
 
 #plot10 for holiday
-plot(holiday,res2,xlab = "holiday",ylab = "residuals",main = "fit1 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
+plot(holiday,res2,xlab = "holiday",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
 
 #plot11 for holiday
-plot(season,res2,xlab = "season",ylab = "residuals",main = "fit1 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
+plot(season,res2,xlab = "season",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
 
 detach(train)
 
