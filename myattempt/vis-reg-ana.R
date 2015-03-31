@@ -4,6 +4,7 @@ library(dplyr)
 library(ggplot2)
 setwd("/Users/apple/Documents/study/R/BikeSharingDemand/myattempt")
 train = read.csv("train.csv")
+test = read.csv("test.csv")
 attach(train)
 # http://www.cookbook-r.com/Manipulating_data/Summarizing_data/
 # We have numerical variables: temp, atemp, humidity and windspeed
@@ -69,22 +70,25 @@ featureEngineer <- function(df){
 
 
 
-train = featureEngineer(train)
-attach(train)
-head(train)
-# Kick out 2 variables: datatime and  year
-subtrain = select(train,-datetime)
-subtrain = select(subtrain,-year)
-names(subtrain)
-
+subtrain = featureEngineer(train)
+attach(subtrain)
+head(subtrain)
+# # Kick out 2 variables: datatime and  year
+# subtrain = select(train,-datetime)
+# subtrain = select(subtrain,-year)
+# subtrain = select(subtrain, -casual)
+# subtrain = select(subtrain, -count)
+# subtrain = select(subtrain, -registered)
+# names(subtrain)
+# 
 # Turn the categorical variables into numeric
-subtrain$season = as.numeric(subtrain$season)
-subtrain$holiday = as.numeric(subtrain$holiday)
-subtrain$workingday = as.numeric(subtrain$workingday)
-subtrain$weekday = as.numeric(subtrain$weekday)
+ subtrain$season = as.numeric(subtrain$season)
+ subtrain$holiday = as.numeric(subtrain$holiday)
+ subtrain$workingday = as.numeric(subtrain$workingday)
+ subtrain$weekday = as.numeric(subtrain$weekday)
 
 #Fit1: linear model,with response variable as registered
-fit1 = lm(registered~.,data = subtrain)
+fit1 = lm(registered~season+holiday+workingday+weather+temp+atemp+humidity+windspeed+weekday+hour+year,data = subtrain)
 summ1 = summary(fit1)
 
 # Checking Cook's distance for abnormal data or observation
@@ -92,7 +96,7 @@ diagnose = ls.diag(fit1)
 print(diagnose$cook)
 plot(diagnose$cook)
 print(diagnose$dfits)
-
+plot(diagnose$dfits)
 
 # Testing the linear model by residual plot
 #  season holiday workingday weather temp  atemp humidity windspeed (casual registered count) weekday hour
@@ -108,47 +112,105 @@ plot(pred1,res1,xlab = "predicted value",ylab = "residuals")
 abline(h = 2*sigma1);abline(h = -2*sigma1)
 
 # plot2 for hour
-plot(hour,res1,xlab = "predicted hour",ylab = "residuals")
-abline(h = 2*sigma1);abline(h = -2*sigma1)
+plot(hour,res1,xlab = "predicted hour",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
 
 # plot3 for weekday
-plot(weekday,res1,xlab = "weekday",ylab = "residuals")
-abline(h = 2*sigma1);abline(h = -2*sigma1)
+plot(weekday,res1,xlab = "weekday",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
 
 # plot4 for windspeed
-plot(windspeed,res1,xlab = "windspeed",ylab = "residuals")
-abline(h = 2*sigma1);abline(h = -2*sigma1)
+plot(windspeed,res1,xlab = "windspeed",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
 
 # plot5 for humidity
-plot(humidity,res1,xlab = "humidity",ylab = "residuals")
-abline(h = 2*sigma1);abline(h = -2*sigma1)
+plot(humidity,res1,xlab = "humidity",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
 
 #plot6 for atemp
-plot(atemp,res1,xlab = "atemp",ylab = "residuals")
-abline(h = 2*sigma1);abline(h = -2*sigma1)
+plot(atemp,res1,xlab = "atemp",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
 
 #plot7 for temp
-plot(temp,res1,xlab = "temp",ylab = "residuals")
-abline(h = 2*sigma1);abline(h = -2*sigma1)
+plot(temp,res1,xlab = "temp",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
 
 #plot8 for weather
-plot(weather,res1,xlab = "weather",ylab = "residuals")
-abline(h = 2*sigma1);abline(h = -2*sigma1)
+plot(weather,res1,xlab = "weather",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
 
 #plot9 for workingday
-plot(workingday,res1,xlab = "workingday",ylab = "residuals")
-abline(h = 2*sigma1);abline(h = -2*sigma1)
+plot(workingday,res1,xlab = "workingday",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
 
 #plot10 for holiday
-plot(holiday,res1,xlab = "holiday",ylab = "residuals")
-abline(h = 2*sigma1);abline(h = -2*sigma1)
+plot(holiday,res1,xlab = "holiday",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
 
 #plot11 for holiday
-plot(season,res1,xlab = "season",ylab = "residuals")
-abline(h = 2*sigma1);abline(h = -2*sigma1)
+plot(season,res1,xlab = "season",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
 
 
 
 
 
+#Fit2: linear model,with response variable as casual
+fit2 = lm(casual~season+holiday+workingday+weather+temp+atemp+humidity+windspeed+weekday+hour+year,data = subtrain)
+summ2 = summary(fit2)
 
+# Checking Cook's distance for abnormal data or observation
+diagnose = ls.diag(fit2)
+print(diagnose$cook)
+plot(diagnose$cook)
+print(diagnose$dfits)
+plot(diagnose$dfits)
+
+# Testing the linear model by residual plot
+#  season holiday workingday weather temp  atemp humidity windspeed (casual registered count) weekday hour
+names(summ2)
+pred2 = predict(fit2)  # predicted value from fit1 regression model
+res2 = resid(fit2)     # residuals
+sigma2 = summ2$sigma
+# residual plots
+
+#plot 1 for all variables
+qqnorm(res2,main = "normal QQ plot of residuals")
+plot(pred2,res2,xlab = "predicted value",ylab = "residuals",main = "fit1 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
+
+# plot2 for hour
+plot(hour,res2,xlab = "predicted hour",ylab = "residuals",main = "fit1 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
+
+# plot3 for weekday
+plot(weekday,res2,xlab = "weekday",ylab = "residuals",main = "fit1 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
+
+# plot4 for windspeed
+plot(windspeed,res2,xlab = "windspeed",ylab = "residuals",main = "fit1 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
+
+# plot5 for humidity
+plot(humidity,res2,xlab = "humidity",ylab = "residuals",main = "fit1 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
+
+#plot6 for atemp
+plot(atemp,res2,xlab = "atemp",ylab = "residuals",main = "fit1 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
+
+#plot7 for temp
+plot(temp,res2,xlab = "temp",ylab = "residuals",main = "fit1 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
+
+#plot8 for weather
+plot(weather,res2,xlab = "weather",ylab = "residuals",main = "fit1 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
+
+#plot9 for workingday
+plot(workingday,res2,xlab = "workingday",ylab = "residuals",main = "fit1 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
+
+#plot10 for holiday
+plot(holiday,res2,xlab = "holiday",ylab = "residuals",main = "fit1 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
+
+#plot11 for holiday
+plot(season,res2,xlab = "season",ylab = "residuals",main = "fit1 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
+
+detach(train)
+
+# 
+subtest = featureEngineer(test)
+head(subtest)
+
+
+
+# Turn the categorical variables into numeric
+subtest$season = as.numeric(subtest$season)
+subtest$holiday = as.numeric(subtest$holiday)
+subtest$workingday = as.numeric(subtest$workingday)
+subtest$weekday = as.numeric(subtest$weekday)
+
+
+test$registered = predict(fit1,newdata = subtest)
