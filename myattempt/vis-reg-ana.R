@@ -1,7 +1,7 @@
 #Visualization part for evaluating the data
-install.packages('dplyr')
+
 library(dplyr)
-library(ggplot2)
+
 setwd("/Users/apple/Documents/study/R/BikeSharingDemand/myattempt")
 train = read.csv("train.csv")
 test = read.csv("test.csv")
@@ -22,7 +22,7 @@ weekday_count = aggregate(train["count"], by = train[c("weekday")], FUN = sum)
 
 
 par("mar")
-par(mar=c(0.5,1,1,1))
+par(mar=c(3.9,3.9,2,2))
 par(mfrow=c(3,2))
 s_c_plot =barplot(season_count$count,names.arg = season_count$season,main = "count VS season",xlab = "season", ylab = "count")
 h_c_plot =barplot(holiday_count$count,names.arg = holiday_count$holiday,main = "count VS holiday",xlab = "holiday", ylab = "count")
@@ -35,7 +35,6 @@ work_c_plot = barplot(workingday_count$count,names.arg = workingday_count$workin
 # first try some parameters
 
 featureEngineer <- function(df){
-  
   # Factorize the data
   names <- c("season", "holiday", "workingday", "weather")
   df[,names]<-lapply(df[,names],factor)
@@ -49,8 +48,7 @@ featureEngineer <- function(df){
   df$weekday <- as.factor(weekdays(df$datetime))
   df$weekday <- factor(df$weekday,
                        levels
-                       =c("Monday",
-                           "Tuesday",
+                       =c("Monday","Tuesday",
                            "Wednesday",
                            "Thursday",
                            "Friday",
@@ -99,39 +97,46 @@ res1 = resid(fit1)     # residuals
 sigma1 = summ1$sigma
 # residual plots
 
+ par(mfrow = c(1,1))
 #plot 1 for all variables
 qqnorm(res1,main = "normal QQ plot of residuals,registered as response variable")
 plot(pred1,res1,xlab = "predicted value",ylab = "residuals")
 abline(h = 2*sigma1);abline(h = -2*sigma1)
 
-# plot2 for hour
-plot(hour,res1,xlab = "predicted hour",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
+# Residual plots for quantitative variables
+# par(mfrow = c(2,2)) 
 
-# plot3 for weekday
-plot(weekday,res1,xlab = "weekday",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
-
-# plot4 for windspeed
+# plot for windspeed
 plot(windspeed,res1,xlab = "windspeed",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
 
-# plot5 for humidity
+# plot for humidity
 plot(humidity,res1,xlab = "humidity",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
 
-#plot6 for atemp
+# plot for atemp
 plot(atemp,res1,xlab = "atemp",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
 
-#plot7 for temp
+# plot for temp
 plot(temp,res1,xlab = "temp",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
 
-#plot8 for weather
+
+#Residual plots for categorical variables
+# par = mfrow = (c(2,3))
+# plot for hour
+plot(hour,res1,xlab = "predicted hour",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
+
+# plot for weekday
+plot(weekday,res1,xlab = "weekday",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
+
+#plot for weather
 plot(weather,res1,xlab = "weather",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
 
-#plot9 for workingday
+#plot for workingday
 plot(workingday,res1,xlab = "workingday",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
 
-#plot10 for holiday
+#plot for holiday
 plot(holiday,res1,xlab = "holiday",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
 
-#plot11 for holiday
+#plot for season
 plot(season,res1,xlab = "season",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
 
 
@@ -157,15 +162,13 @@ res2 = resid(fit2)     # residuals
 sigma2 = summ2$sigma
 # residual plots
 
-#plot 1 for all variables
+#plot  for all variables
 qqnorm(res2,main = "normal QQ plot of residuals,causal as response variable")
 plot(pred2,res2,xlab = "predicted value",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
 
-# plot2 for hour
-plot(hour,res2,xlab = "predicted hour",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
 
-# plot3 for weekday
-plot(weekday,res2,xlab = "weekday",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
+# Residual plots for quantitative variables
+par(mfrow = c(1,1)) 
 
 # plot4 for windspeed
 plot(windspeed,res2,xlab = "windspeed",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
@@ -179,31 +182,48 @@ plot(atemp,res2,xlab = "atemp",ylab = "residuals",main = "fit2 with casual as re
 #plot7 for temp
 plot(temp,res2,xlab = "temp",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
 
-#plot8 for weather
+
+#Residual plots for categorical variables
+par = mfrow = (c(2,3))
+
+# plot for hour
+plot(hour,res2,xlab = "predicted hour",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
+
+# plot for weekday
+plot(weekday,res2,xlab = "weekday",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
+
+#plot for weather
 plot(weather,res2,xlab = "weather",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
 
-#plot9 for workingday
+#plot for workingday
 plot(workingday,res2,xlab = "workingday",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
 
-#plot10 for holiday
+#plot for holiday
 plot(holiday,res2,xlab = "holiday",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
 
-#plot11 for holiday
+#plot for holiday
 plot(season,res2,xlab = "season",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
 
 
+
+
 # Fit4 with improvement on the explanatory variables
-subtrain$logtemp = log(subtrain$temp)
+subtrain$squarewindspeed = I((subtrain$windspeed)^2)
+subtrain$logtemp = I(log(subtrain$temp))
 subtrain$sqrttemp = sqrt(subtrain$temp)
 subtrain$sqrtemp = (subtrain$temp)*(subtrain$temp)
+attach(subtrain)
 
-fit4 = lm(casual~season+holiday+workingday+weather+sqrtemp+atemp+humidity+windspeed+weekday+hour+year,data = subtrain)
+fit4 = lm(casual~season+holiday+workingday+weather+temp+atemp+humidity+windspeed+I(windspeed^2)+weekday+hour+year,data = subtrain)
 summ4 = summary(fit4)
+pred4 = predict(fit4)
 res4 = summ4$residuals
 sigma4 = summ4$sigma
 
+#
+
 #plot7 for temp
-plot(subtrain$temp,res4,xlab = "temp",ylab = "residuals",main = "fit4 with casual as response variable");abline(h = 2*sigma4);abline(h = -2*sigma4)
+plot(windspeed,res4,xlab = "windspeed",ylab = "residuals",main = "fit4 with casual as response variable");abline(h = 2*sigma4);abline(h = -2*sigma4)
 summ3 = summary(fit3)
 
 detach(train)
