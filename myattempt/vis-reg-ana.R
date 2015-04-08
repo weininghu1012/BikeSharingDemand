@@ -47,18 +47,11 @@ featureEngineer <- function(df){
   #get the weekday for each date using weekdays function
   df$weekday <- as.factor(weekdays(df$datetime))
   df$weekday <- factor(df$weekday,
-                       levels
-                       =c("Monday","Tuesday",
-                           "Wednesday",
-                           "Thursday",
-                           "Friday",
-                           "Saturday",
-                           "Sunday"))
+                       levels=c("Monday","Tuesday","Wednesday", "Thursday","Friday","Saturday","Sunday"))
   #the count also increases as time goes on
   #add year as a factor into our model
   df$year <- as.integer(substr(df$datetime,1,4))
   df$year <- as.factor(df$year)
-  
   # the count also vary among different time
   # to be done next time
   return (df)
@@ -66,7 +59,7 @@ featureEngineer <- function(df){
 
 
 
-
+# Use the function featureEngineer to get the subset of data
 
 subtrain = featureEngineer(train)
 attach(subtrain)
@@ -77,6 +70,34 @@ head(subtrain)
  subtrain$holiday = as.numeric(subtrain$holiday)
  subtrain$workingday = as.numeric(subtrain$workingday)
  subtrain$weekday = as.numeric(subtrain$weekday)
+
+## try to group hour categorical 
+plot(hour,res1,xlab = "predicted hour",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
+# ======================================================
+# ======================================================
+# FIT1:
+# variable selection and creation of explanatory variable
+#install.packages('leaps')
+library(leaps)
+
+cat("\nexhaustive\n")
+out.exh=regsubsets(registered~atemp+weekday+hour+year+holiday+humidity+season+temp+weather+windspeed+workingday,data=subtrain,nbest=1,nvmax=40)
+summ.exh=summary(out.exh)
+names(summ.exh)
+print(summ.exh$outmat)
+print(summ.exh$cp)
+print(summ.exh$adjr)
+
+
+# generally want small cp and large adjr
+# model selection by exhaustive search
+# fit1. 32 variables
+fit1= glm(registered~atemp+hour+I(year==2012)+humidity+season+weather+windspeed+workingday,family=poisson)
+# cp=33.16922, adjr=0.6840206
+#AIC: 348374
+==================================
+  
+subtrain$subhour= subtrain$hour[c((hour==7),(hour==8),(hour==17),(hour==18),(hour==19))]
 
 #Fit1: linear model,with response variable as registered
 fit1 = lm(registered~season+holiday+workingday+weather+temp+atemp+humidity+windspeed+weekday+hour+year,data = subtrain)
@@ -142,10 +163,69 @@ plot(season,res1,xlab = "season",ylab = "residuals",main = "fit1 with registered
 
 
 
+# FIT2:
+# variable selection and creation of explanatory variable
 
+# The process for model selection
+cat("\nexhaustive\n")
+out.casual.exh=regsubsets(casual~atemp+weekday+hour+year+holiday+humidity+season+temp+weather+windspeed+workingday,data=subtrain,nbest=1)
+summ.casual.exh=summary(out.casual.exh)
+names(summ.casual.exh)
+print(summ.casual.exh$outmat)
+print(summ.casual.exh$cp)
+print(summ.casual.exh$adjr)
+
+cat("\nbackward\n")
+out.casual.back=regsubsets(casual~atemp+weekday+hour+year+holiday+humidity+season+temp+weather+windspeed+workingday,data=subtrain,method="backward")
+summ.casual.back=summary(out.casual.back)
+print(summ.casual.back$outmat)
+cat("Cp and adjr\n")
+print(summ.casual.back$cp)
+print(summ.casual.back$adjr)
+
+cat("\nforward\n")
+out.casual.forw=regsubsets(casual~atemp+weekday+hour+year+holiday+humidity+season+temp+weather+windspeed+workingday,data=subtrain,method="forward")
+summ.casual.forw=summary(out.casual.forw)
+print(summ.casual.forw$outmat)
+cat("Cp and adjr\n")
+print(summ.casual.forw$cp)
+print(summ.casual.forw$adjr)
+
+cat("\nseqrep\n")
+out.casual.sequ=regsubsets(casual~atemp+weekday+hour+year+holiday+humidity+season+temp+weather+windspeed+workingday,data=subtrain,method="seqrep")
+summ.casual.sequ=summary(out.casual.sequ)
+print(summ.casual.sequ$outmat)
+cat("Cp and adjr\n")
+print(summ..casual.sequ$cp)
+print(summ.casual.sequ$adjr)
+
+# generally want small cp and large adjr
+# model selection by exhaustive search
+fit2.exh = lm(casual~atemp+I(hour==13)+I(hour==14)+I(hour==15)+I(hour==16)+I(hour==17)+humidity+workingday
+# cp=2373.350, adjr=0.4859510
+              
+# model selection by backward search
+fit2.backw= lm(casual~I(hour==13)+I(hour==14)+I(hour==15)+I(hour==16)+I(hour==17)+humidity+temp+workingday)
+#cp = 2385.866, adjr=0.4854651
+              
+# model selection by forward search
+fit2.forw= lm(casual~I(hour==13)+I(hour==14)+I(hour==15)+I(hour==16)+I(hour==17)+humidity+temp+workingday)
+# cp = 2385.866, adjr=0.4854651
+              
+# model selection by sequential replacement (same result as exhaustive search)
+              
+summary(fit2.exh)
+summary(fit2.backw)
+summary(fit2.forw)
+              
+              ## in conclusion, the exhaustive search is the best fit since it has the smallest cp and largest adjr.
+              
 #Fit2: linear model,with response variable as casual
 fit2 = lm(casual~season+holiday+workingday+weather+temp+atemp+humidity+windspeed+weekday+hour+year,data = subtrain)
 summ2 = summary(fit2)
+
+
+
 
 # Checking Cook's distance for abnormal data or observation
 diagnose = ls.diag(fit2)
@@ -214,14 +294,14 @@ subtrain$sqrttemp = sqrt(subtrain$temp)
 subtrain$sqrtemp = (subtrain$temp)*(subtrain$temp)
 attach(subtrain)
 
-fit4 = lm(casual~season+holiday+workingday+weather+temp+atemp+humidity+windspeed+I(windspeed^2)+weekday+hour+year,data = subtrain)
+fit4 = lm(I(casual^2)~season+holiday+workingday+weather+temp+atemp+humidity+windspeed+I(windspeed^2)+weekday+hour+year,data = subtrain)
 summ4 = summary(fit4)
 pred4 = predict(fit4)
 res4 = summ4$residuals
 sigma4 = summ4$sigma
 
 #
-
+plot(pred4,res4,xlab = "predicted value",ylab = "residuals",main = "fit4 with casual as response variable");abline(h = 2*sigma4);abline(h = -2*sigma4)
 #plot7 for temp
 plot(windspeed,res4,xlab = "windspeed",ylab = "residuals",main = "fit4 with casual as response variable");abline(h = 2*sigma4);abline(h = -2*sigma4)
 summ3 = summary(fit3)
