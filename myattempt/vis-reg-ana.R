@@ -71,12 +71,10 @@ head(subtrain)
  subtrain$workingday = as.numeric(subtrain$workingday)
  subtrain$weekday = as.numeric(subtrain$weekday)
 
-## try to group hour categorical 
-plot(hour,res1,xlab = "predicted hour",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
+
 # ======================================================
 # ======================================================
-# FIT1:
-# variable selection and creation of explanatory variable
+# Variable selection and creation of explanatory variable
 #install.packages('leaps')
 library(leaps)
 
@@ -85,80 +83,102 @@ out.exh=regsubsets(registered~atemp+weekday+hour+year+holiday+humidity+season+te
 summ.exh=summary(out.exh)
 names(summ.exh)
 print(summ.exh$outmat)
-print(summ.exh$cp)
-print(summ.exh$adjr)
-
-
-# generally want small cp and large adjr
-# model selection by exhaustive search
-# fit1. 32 variables
-fit1= glm(registered~atemp+hour+I(year==2012)+humidity+season+weather+windspeed+workingday,family=poisson)
+c =print(summ.exh$cp)
+a = print(summ.exh$adjr)
+#Good model should with  small cp and large adjr, we choose the one with variables that we put in fit1.glm
+minc = min(c)
+cindex = which(c==minc)
+maxa = max(a)
+aindex = which(a==maxa)
+# The best model according to CP has 32 variables while the best model according to adjr has 34 variables, we choose the one with 32 variables since the adr are pretty close
+# The variables are: atemp+hour+I(year==2012)+humidity+season+weather+windspeed+workingday
 # cp=33.16922, adjr=0.6840206
+# model selection by exhaustive search
+
+
+# fit1.glm: generalized linear model with 32 variables, response variable as registered
+fit1.glm= glm(registered~atemp+hour+I(year==2012)+humidity+season+weather+windspeed+workingday,family="poisson")
 #AIC: 348374
-==================================
-  
-subtrain$subhour= subtrain$hour[c((hour==7),(hour==8),(hour==17),(hour==18),(hour==19))]
 
-#Fit1: linear model,with response variable as registered
-fit1 = lm(registered~season+holiday+workingday+weather+temp+atemp+humidity+windspeed+weekday+hour+year,data = subtrain)
-summ1 = summary(fit1)
+#fit1.lm: linear model with 32 variables, response variable as registered
+fit1.lm = lm(registered~atemp+hour+I(year==2012)+humidity+season+weather+windspeed+workingday)
+# Residual standard error: 84.53 on 10851 degrees of freedom
+# Multiple R-squared:  0.6878,  Adjusted R-squared:  0.6868 
+# F-statistic: 703.1 on 34 and 10851 DF,  p-value: < 2.2e-16
+summ1.glm = summary(fit1.glm)
+summ1.lm = summary(fit1.lm)
 
+
+par("mar")
+par(mar = c(4,4,1,1))
 # Checking Cook's distance for abnormal data or observation
-diagnose = ls.diag(fit1)
-print(diagnose$cook)
-plot(diagnose$cook)
-print(diagnose$dfits)
-plot(diagnose$dfits)
+diagnose.glm = ls.diag(fit1.glm)
+print(diagnose.glm$cook)
+plot(diagnose.glm$cook)
+print(diagnose.glm$dfits)
+plot(diagnose.glm$dfits)
 
-# Testing the linear model by residual plot
-#  season holiday workingday weather temp  atemp humidity windspeed (casual registered count) weekday hour
-names(summ1)
-pred1 = predict(fit1)  # predicted value from fit1 regression model
-res1 = resid(fit1)     # residuals
-sigma1 = summ1$sigma
+
+# Remove the data with large Cook's distance, we use the criteria to remove certain data that has
+# Cook's distance >= (4/n), with n is the number of data
+
+n = length(diagnose.glm$cook)
+indexvector = c()
+
+for (i in 1:n){
+  
+  if (!is.na(diagnose.glm$cook[i])){
+    if (diagnose.glm$cook[i]>(4/n)){
+    
+    indexvector = c(indexvector,i) }
+}
+}
+# The new subtrain is the one with abnorm data subtracted
+subtrain = subtrain[-indexvector,]
+
+# Testing the linear model fit1.lm by residual plot
+
+names(summ1.lm)
+pred1.lm = predict(fit1.lm, data = subtrain)  # predicted value from fit1.lm regression model
+res1.lm = resid(fit1.lm, data = subtrain)     # residuals
+sigma1.lm = summ1.lm$sigma
 # residual plots
 
  par(mfrow = c(1,1))
 #plot 1 for all variables
-qqnorm(res1,main = "normal QQ plot of residuals,registered as response variable")
-plot(pred1,res1,xlab = "predicted value",ylab = "residuals")
-abline(h = 2*sigma1);abline(h = -2*sigma1)
+qqnorm(res1.lm,main = "normal QQ plot of residuals,registered as response variable")
+plot(pred1.lm,res1.lm,xlab = "predicted value",ylab = "residuals");abline(h = 2*sigma1.lm);abline(h = -2*sigma1.lm)
 
+
+#The variables we shall check: atemp+hour+I(year==2012)+humidity+season+weather+windspeed+workingday
 # Residual plots for quantitative variables
 # par(mfrow = c(2,2)) 
 
-# plot for windspeed
-plot(windspeed,res1,xlab = "windspeed",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
+# plot for atemp
+plot(atemp,res1.lm,xlab = "atemp",ylab = "residuals",main = "fit1.lm with registered as response variable");abline(h = 2*sigma1.lm);abline(h = -2*sigma1.lm)
+
+# plot for hour
+plot(hour,res1.lm,xlab = "predicted hour",ylab = "residuals",main = "fit1.lm with registered as response variable");abline(h = 2*sigma1.lm);abline(h = -2*sigma1.lm)
 
 # plot for humidity
-plot(humidity,res1,xlab = "humidity",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
+plot(humidity,res1.lm,xlab = "humidity",ylab = "residuals",main = "fit1.lm with registered as response variable");abline(h = 2*sigma1.lm);abline(h = -2*sigma1.lm)
 
-# plot for atemp
-plot(atemp,res1,xlab = "atemp",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
-
-# plot for temp
-plot(temp,res1,xlab = "temp",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
-
-
-#Residual plots for categorical variables
-# par = mfrow = (c(2,3))
-# plot for hour
-plot(hour,res1,xlab = "predicted hour",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
-
-# plot for weekday
-plot(weekday,res1,xlab = "weekday",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
+#plot for season
+plot(season,res1.lm,xlab = "season",ylab = "residuals",main = "fit1.lm with registered as response variable");abline(h = 2*sigma1.lm);abline(h = -2*sigma1.lm)
 
 #plot for weather
-plot(weather,res1,xlab = "weather",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
+plot(weather,res1.lm,xlab = "weather",ylab = "residuals",main = "fit1.lm with registered as response variable");abline(h = 2*sigma1.lm);abline(h = -2*sigma1.lm)
+
+# plot for windspeed
+plot(windspeed,res1.lm,xlab = "windspeed",ylab = "residuals",main = "fit1.lm with registered as response variable");abline(h = 2*sigma1.lm);abline(h = -2*sigma1.lm)
 
 #plot for workingday
-plot(workingday,res1,xlab = "workingday",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
+plot(workingday,res1.lm,xlab = "workingday",ylab = "residuals",main = "fit1.lm with registered as response variable");abline(h = 2*sigma1.lm);abline(h = -2*sigma1.lm)
 
 #plot for holiday
 plot(holiday,res1,xlab = "holiday",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
 
-#plot for season
-plot(season,res1,xlab = "season",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
+
 
 
 
