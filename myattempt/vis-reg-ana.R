@@ -142,9 +142,14 @@ names(summ1.lm)
 pred1.lm = predict(fit1.lm, data = subtrain)  # predicted value from fit1.lm regression model
 res1.lm = resid(fit1.lm, data = subtrain)     # residuals
 sigma1.lm = summ1.lm$sigma
-# residual plots
 
- par(mfrow = c(1,1))
+pred1.glm = predict(fit1.glm, data = subtrain)  # predicted value from fit1.lm regression model
+res1.glm = resid(fit1.glm, data = subtrain)     # residuals
+sigma1.glm = summ1.glm$sigma
+
+
+# residual plots
+par(mfrow = c(1,1))
 #plot 1 for all variables
 qqnorm(res1.lm,main = "normal QQ plot of residuals,registered as response variable")
 plot(pred1.lm,res1.lm,xlab = "predicted value",ylab = "residuals");abline(h = 2*sigma1.lm);abline(h = -2*sigma1.lm)
@@ -178,6 +183,91 @@ plot(workingday,res1.lm,xlab = "workingday",ylab = "residuals",main = "fit1.lm w
 #plot for holiday
 plot(holiday,res1,xlab = "holiday",ylab = "residuals",main = "fit1 with registered as response variable");abline(h = 2*sigma1);abline(h = -2*sigma1)
 
+# Adjust the linear model glm.lm and nonlinear model fit1.glm with residual plot,mainly time period
+subtrain$numHour = as.numeric(subtrain$hour)
+subtrain$hourcat6 = cut(subtrain$numHour,breaks = c(-Inf, 6, 10, 16, 20,Inf), labels = c(1:5))
+out.exh=regsubsets(registered~atemp+weekday+hourcat6+year+holiday+humidity+season+temp+weather+windspeed+workingday,data=subtrain,nbest=1,nvmax=40)
+summ.exh=summary(out.exh)
+names(summ.exh)
+print(summ.exh$outmat)
+c = print(summ.exh$cp)
+a = print(summ.exh$adjr)
+minc = min(c)
+maxa = max(a)
+cindex = which(c == minc)
+aindex = which(a == maxa)
+# The minimum is with 11 variables
+fit1.lm = lm(registered~atemp+hourcat6+I(year==2012)+humidity+season+I(weather==2)+I(weather==3)+workingday,data=subtrain)
+# Residual standard error: 98.54 on 10552 degrees of freedom
+# Multiple R-squared:  0.5775,  Adjusted R-squared:  0.577 
+# F-statistic:  1311 on 11 and 10552 DF,  p-value: < 2.2e-16
+
+
+fit1.glm = glm(registered~atemp+hourcat6+I(year==2012)+humidity+season+I(weather==2)+I(weather==3)+workingday,data=subtrain,family=poisson)
+summ1.glm = summary(fit1.glm)  
+#AIC: 477430
+
+attach(subtrain)
+#Make transformations to the variables according to residual plot
+fit1.lm = lm(registered~I(atemp^2)+atemp+hourcat6+I(year==2012)+humidity+I(log(humidity+1))+season+I(weather==2)+I(weather==3)+workingday,data=subtrain)
+
+# Residual standard error: 98.39 on 10550 degrees of freedom
+# Multiple R-squared:  0.5788,  Adjusted R-squared:  0.5783 
+# F-statistic:  1115 on 13 and 10550 DF,  p-value: < 2.2e-16
+
+# We can see that the adjusted-r does not improve much(0.577,0.5783)
+# We plan to transform the response variable
+
+fit1.lm = lm(I(log(registered+1))~I(atemp^2)+atemp+hourcat6+I(year==2012)+humidity+I(log(humidity+1))+season+I(weather==2)+I(weather==3)+workingday,data=subtrain)
+# Residual standard error: 0.6861 on 10550 degrees of freedom
+# Multiple R-squared:  0.7644,  Adjusted R-squared:  0.7641 
+# F-statistic:  2633 on 13 and 10550 DF,  p-value: < 2.2e-16
+
+fit1.lm = lm(I(log(registered+1))~atemp+hourcat6+I(year==2012)+humidity+season+weather+windspeed+workingday,data=subtrain)
+# Residual standard error: 0.6934 on 10552 degrees of freedom
+# Multiple R-squared:  0.7592,  Adjusted R-squared:  0.759 
+# F-statistic:  3025 on 11 and 10552 DF,  p-value: < 2.2e-16
+
+fit1.lm = lm(I(log(registered+1))~atemp+hour+I(year==2012)+humidity+season+weather+windspeed+workingday,data=subtrain)
+# Residual standard error: 0.5482 on 10531 degrees of freedom
+# Multiple R-squared:  0.8498,  Adjusted R-squared:  0.8493 
+# F-statistic:  1862 on 32 and 10531 DF,  p-value: < 2.2e-16
+
+pred1.lm = predict(fit1.lm, data = subtrain)  # predicted value from fit1.lm regression model
+res1.lm = resid(fit1.lm, data = subtrain)     # residuals
+sigma1.lm = summ1.lm$sigma
+summ1.lm = summary(fit1.lm)
+
+
+# residual plots
+par(mfrow = c(1,1))
+#plot 1 for all variables
+qqnorm(res1.lm,main = "normal QQ plot of residuals,registered as response variable")
+plot(pred1.lm,res1.lm,xlab = "predicted value",ylab = "residuals");abline(h = 2*sigma1.lm);abline(h = -2*sigma1.lm)
+
+
+#The variables we shall check: atemp+hour+I(year==2012)+humidity+season+weather+windspeed+workingday
+
+# plot for atemp
+plot(atemp,res1.lm,xlab = "atemp",ylab = "residuals",main = "fit1.lm with registered as response variable");abline(h = 2*sigma1.lm);abline(h = -2*sigma1.lm)
+
+# plot for hour
+plot(hour,res1.lm,xlab = "predicted hour",ylab = "residuals",main = "fit1.lm with registered as response variable");abline(h = 2*sigma1.lm);abline(h = -2*sigma1.lm)
+
+# plot for humidity
+plot(humidity,res1.lm,xlab = "humidity",ylab = "residuals",main = "fit1.lm with registered as response variable");abline(h = 2*sigma1.lm);abline(h = -2*sigma1.lm)
+
+#plot for season
+plot(season,res1.lm,xlab = "season",ylab = "residuals",main = "fit1.lm with registered as response variable");abline(h = 2*sigma1.lm);abline(h = -2*sigma1.lm)
+
+#plot for weather
+plot(weather,res1.lm,xlab = "weather",ylab = "residuals",main = "fit1.lm with registered as response variable");abline(h = 2*sigma1.lm);abline(h = -2*sigma1.lm)
+
+# plot for windspeed
+plot(windspeed,res1.lm,xlab = "windspeed",ylab = "residuals",main = "fit1.lm with registered as response variable");abline(h = 2*sigma1.lm);abline(h = -2*sigma1.lm)
+
+#plot for workingday
+plot(workingday,res1.lm,xlab = "workingday",ylab = "residuals",main = "fit1.lm with registered as response variable");abline(h = 2*sigma1.lm);abline(h = -2*sigma1.lm)
 
 
 
