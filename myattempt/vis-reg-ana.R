@@ -95,7 +95,6 @@ aindex = which(a==maxa)
 # cp=33.16922, adjr=0.6840206
 # model selection by exhaustive search
 
-
 # fit1.glm: generalized linear model with 32 variables, response variable as registered
 fit1.glm= glm(registered~atemp+hour+I(year==2012)+humidity+season+weather+windspeed+workingday,family="poisson")
 #AIC: 348374
@@ -278,12 +277,18 @@ plot(workingday,res1.lm,xlab = "workingday",ylab = "residuals",main = "fit1.lm w
 
 # The process for model selection
 cat("\nexhaustive\n")
-out.casual.exh=regsubsets(casual~atemp+weekday+hour+year+holiday+humidity+season+temp+weather+windspeed+workingday,data=subtrain,nbest=1)
+out.casual.exh=regsubsets(casual~atemp+weekday+hour+year+holiday+humidity+season+temp+weather+windspeed+workingday,data=subtrain,nbest=1,nvmax = 40)
 summ.casual.exh=summary(out.casual.exh)
 names(summ.casual.exh)
 print(summ.casual.exh$outmat)
-print(summ.casual.exh$cp)
-print(summ.casual.exh$adjr)
+c = print(summ.casual.exh$cp)
+a = print(summ.casual.exh$adjr)
+minc = min(c)
+maxa = max(a)
+cindex = which(c == minc)
+aindex = which(a == maxa)
+
+# The best model is with 32 variables
 
 cat("\nbackward\n")
 out.casual.back=regsubsets(casual~atemp+weekday+hour+year+holiday+humidity+season+temp+weather+windspeed+workingday,data=subtrain,method="backward")
@@ -306,7 +311,7 @@ out.casual.sequ=regsubsets(casual~atemp+weekday+hour+year+holiday+humidity+seaso
 summ.casual.sequ=summary(out.casual.sequ)
 print(summ.casual.sequ$outmat)
 cat("Cp and adjr\n")
-print(summ..casual.sequ$cp)
+print(summ.casual.sequ$cp)
 print(summ.casual.sequ$adjr)
 
 # generally want small cp and large adjr
@@ -328,107 +333,156 @@ summary(fit2.exh)
 summary(fit2.backw)
 summary(fit2.forw)
               
-              ## in conclusion, the exhaustive search is the best fit since it has the smallest cp and largest adjr.
+  ## in conclusion, the exhaustive search is the best fit since it has the smallest cp and largest adjr.
               
-#Fit2: linear model,with response variable as casual
-fit2 = lm(casual~season+holiday+workingday+weather+temp+atemp+humidity+windspeed+weekday+hour+year,data = subtrain)
-summ2 = summary(fit2)
+#Fit2: linear model,with response variable as casual, 31 variables
+summ.casual.exh$outmat[31,]
+subtrain = subtrain[,-(hour == 1)]
+subtrain = subtrain[,-(hour == 2)]
+fit2.lm = lm(casual~atemp+weekday+hour+I(year == 2012)+holiday+humidity+season+temp+I(weather == 2)+ I(weather == 3)+windspeed+workingday,data = subtrain)
+# Residual standard error: 32.2 on 10529 degrees of freedom
+# Multiple R-squared:  0.5857,  Adjusted R-squared:  0.5843 
+# F-statistic: 437.8 on 34 and 10529 DF,  p-value: < 2.2e-16
 
+fit2.lm = lm((log(casual+1))~atemp+weekday+hour+I(year == 2012)+holiday+humidity+season+temp+I(weather == 2)+ I(weather == 3)+windspeed+workingday,data = subtrain)
+# Residual standard error: 0.6434 on 10529 degrees of freedom
+# Multiple R-squared:  0.8173,  Adjusted R-squared:  0.8167 
+# F-statistic:  1386 on 34 and 10529 DF,  p-value: < 2.2e-16
 
+fit2.lm = lm((log(casual+1))~atemp+weekday+hour+I(year == 2012)+holiday+humidity+season+temp+weather+windspeed+workingday,data = subtrain)
+# Residual standard error: 0.628 on 10844 degrees of freedom
+# Multiple R-squared:  0.8233,  Adjusted R-squared:  0.8226 
+# F-statistic:  1232 on 41 and 10844 DF,  p-value: < 2.2e-16
 
+# We could check with the adjr tha the best model is  simply with original explanatory variables
 
-# Checking Cook's distance for abnormal data or observation
-diagnose = ls.diag(fit2)
-print(diagnose$cook)
-plot(diagnose$cook)
-print(diagnose$dfits)
-plot(diagnose$dfits)
 
 # Testing the linear model by residual plot
 #  season holiday workingday weather temp  atemp humidity windspeed (casual registered count) weekday hour
+summ2 = summary(fit2.lm)
 names(summ2)
-pred2 = predict(fit2)  # predicted value from fit1 regression model
-res2 = resid(fit2)     # residuals
+pred2 = predict(fit2.lm)  # predicted value from fit1 regression model
+res2 = resid(fit2.lm)     # residuals
 sigma2 = summ2$sigma
 # residual plots
-
-#plot  for all variables
-qqnorm(res2,main = "normal QQ plot of residuals,causal as response variable")
-plot(pred2,res2,xlab = "predicted value",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
-
-
-# Residual plots for quantitative variables
 par(mfrow = c(1,1)) 
+par(mar = c(3,3,1,1))
+#plot  for all variables
+#atemp+weekday+hour+I(year == 2012)+holiday+humidity+season+temp+weather+windspeed+workingday
+qqnorm(res2,main = "normal QQ plot of residuals,causal as response variable")
+plot(pred2,res2,xlab = "predicted value",ylab = "residuals",main = "fit2.lm with casual as response variable");abline(h = 2*sigma2.lm);abline(h = -2*sigma2.lm)
 
-# plot4 for windspeed
-plot(windspeed,res2,xlab = "windspeed",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
-
-# plot5 for humidity
-plot(humidity,res2,xlab = "humidity",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
-
-#plot6 for atemp
+#plot for atemp
 plot(atemp,res2,xlab = "atemp",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
-
-#plot7 for temp
-plot(temp,res2,xlab = "temp",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
-
-
-#Residual plots for categorical variables
-par = mfrow = (c(2,3))
-
-# plot for hour
-plot(hour,res2,xlab = "predicted hour",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
 
 # plot for weekday
 plot(weekday,res2,xlab = "weekday",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
 
-#plot for weather
-plot(weather,res2,xlab = "weather",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
-
-#plot for workingday
-plot(workingday,res2,xlab = "workingday",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
+# plot for hour
+plot(hour,res2,xlab = "predicted hour",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
 
 #plot for holiday
 plot(holiday,res2,xlab = "holiday",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
 
-#plot for holiday
-plot(season,res2,xlab = "season",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
+# plot for humidity
+plot(humidity,res2,xlab = "humidity",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
+
+#plot for temp
+plot(temp,res2,xlab = "temp",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
+
+#plot for weather
+plot(weather,res2,xlab = "weather",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
+
+# plot for windspeed
+plot(windspeed,res2,xlab = "windspeed",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
+
+#plot for workingday
+plot(workingday,res2,xlab = "workingday",ylab = "residuals",main = "fit2 with casual as response variable");abline(h = 2*sigma2);abline(h = -2*sigma2)
+
+train = read.csv("train.csv")
+subtrain = featureEngineer(train)
+
+#CROSS VALIDATION 
+set.seed(456)
+n = nrow(subtrain)
+iperm=sample(n,n)
+subtrain.train = subtrain[iperm[1:10000],]
+subtrain.holdout = subtrain[iperm[10001:n],]
+
+#Linear model with response variable logged
+fitMostTrain = lm(I(log(registered+1))~atemp+hour+I(year==2012)+humidity+season+weather+windspeed+workingday, data=subtrain.train)
+predMostHold = predict(fitMostTrain,new = subtrain.holdout)
+rmseMostHold = sqrt(mean((log(subtrain.holdout$registered+1)-predMostHold)^2))
+rmseMostHold
+#[1] 0.6085023, quite small
+
+# Linear model 
+fitMostTrain = lm(registered~atemp+hour+I(year==2012)+humidity+season+I(weather==2)+I(weather==3)+workingday, data=subtrain.train)
+predMostHold = predict(fitMostTrain,new = subtrain.holdout)
+rmseMostHold = sqrt(mean((subtrain.holdout$registered-predMostHold)^2))
+rmseMostHold
+# [1] 83.41994
+# LARGE!
+
+#fitMostTrain=fit1.atemp.sqrt
+#[1] 97.12997 #using fit in pink text
+fitMostTrain.pois = glm(registered~atemp+hour+I(year==2012)+humidity+season+I(weather==2)+I(weather==3)+workingday, data=subtrain.train, family = poisson)
+predMostHold.pois = predict(fitMostTrain.pois, new = subtrain.holdout)
+rmseMostHold.pois = sqrt(mean((subtrain.holdout$registered - predMostHold.pois)^2))
+rmseMostHold.pois
+# [1] 220.1969
+# LARGER!
+
+
+
+fitMostTrain.atemp2 = lm(registered~atemp+I(atemp^2)+hour+I(year==2012)+humidity+season+I(weather==2)+I(weather==3)+workingday, data=subtrain.train)
+predMostHold.atemp2 = predict(fitMostTrain.atemp2, new = subtrain.holdout)
+rmseMostHold.atemp2 = sqrt(mean((subtrain.holdout$registered - predMostHold.atemp2)^2))
+rmseMostHold.atemp2
+# [1] 83.41499
+
+fitMostTrain.pois.atemp2 = glm(registered~atemp+I(atemp^2)+hour+I(year==2012)+humidity+season+I(weather==2)+I(weather==3)+workingday, data=subtrain.train,family=poisson)
+predMostHold.pois.atemp2 = predict(fitMostTrain.pois.atemp2, new = subtrain.holdout)
+rmseMostHold.pois.atemp2 = sqrt(mean((subtrain.holdout$registered - predMostHold.pois.atemp2)^2))
+rmseMostHold.pois.atemp2
+# [1] 220.1953
+#fit1.humidity=glm(registered~I(atemp^2)+atemp+hourcat6+I(year==2012)+I(log(humidity+1))#+humidity+season+I(weather==2)+I(weather==3)+workingday,data=subtrain,family=poisson)
+
+fitMostTrain.humidity = lm(registered~I(atemp^2)+atemp+hour+I(year==2012)+I(log(humidity+1))+humidity+season+I(weather==2)+I(weather==3)+workingday,data=subtrain.train)
+predMostHold.humidity = predict(fitMostTrain.humidity, new = subtrain.holdout)
+rmseMostHold.humidity = sqrt(mean((subtrain.holdout$registered - predMostHold.humidity)^2))
+rmseMostHold.humidity
+# [1] 83.26914
+
+fitMostTrain.pois.humidity = glm(registered~I(atemp^2)+atemp+hour+I(year==2012)+I(log(humidity+1))+humidity+season+I(weather==2)+I(weather==3)+workingday,data=subtrain.train,family=poisson)
+predMostHold.pois.humidity = predict(fitMostTrain.pois.humidity, new = subtrain.holdout)
+rmseMostHold.pois.humidity = sqrt(mean((subtrain.holdout$registered - predMostHold.pois.humidity)^2))
+rmseMostHold.pois.humidity
+# [1]220.1953
+
+fitMostTrain.log = lm(I(log(registered+1))~atemp+hour+I(year==2012)+humidity+season+weather+windspeed+workingday, data=subtrain.train)
+predMostHold.log = predict(fitMostTrain,new = subtrain.holdout)
+predMostHold = exp(predMostHold.log)-1
+rmseMostHold.log = sqrt(mean((subtrain.holdout$registered-predMostHold)^2))
+rmseMostHold.log
+# [1] 216.5318
+
+#since variance of prediction in GLM varies based on covariates, we cannot directly compare a linear model with the poisson model
+
+# just rmse cannot verify best fit
+
+fit1.lm
+fit2.lm
 
 
 
 
-# Fit4 with improvement on the explanatory variables
-subtrain$squarewindspeed = I((subtrain$windspeed)^2)
-subtrain$logtemp = I(log(subtrain$temp))
-subtrain$sqrttemp = sqrt(subtrain$temp)
-subtrain$sqrtemp = (subtrain$temp)*(subtrain$temp)
-attach(subtrain)
-
-fit4 = lm(I(casual^2)~season+holiday+workingday+weather+temp+atemp+humidity+windspeed+I(windspeed^2)+weekday+hour+year,data = subtrain)
-summ4 = summary(fit4)
-pred4 = predict(fit4)
-res4 = summ4$residuals
-sigma4 = summ4$sigma
-
-#
-plot(pred4,res4,xlab = "predicted value",ylab = "residuals",main = "fit4 with casual as response variable");abline(h = 2*sigma4);abline(h = -2*sigma4)
-#plot7 for temp
-plot(windspeed,res4,xlab = "windspeed",ylab = "residuals",main = "fit4 with casual as response variable");abline(h = 2*sigma4);abline(h = -2*sigma4)
-summ3 = summary(fit3)
-
-detach(train)
-
-# 
-subtest = featureEngineer(test)
-head(subtest)
 
 
 
-# Turn the categorical variables into numeric
-subtest$season = as.numeric(subtest$season)
-subtest$holiday = as.numeric(subtest$holiday)
-subtest$workingday = as.numeric(subtest$workingday)
-subtest$weekday = as.numeric(subtest$weekday)
 
 
-test$registered = predict(fit1,newdata = subtest)
+
+
+
+
