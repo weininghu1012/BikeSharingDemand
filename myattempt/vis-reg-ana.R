@@ -75,6 +75,7 @@ head(subtrain)
 # ======================================================
 # ======================================================
 # Variable selection and creation of explanatory variable
+
 #install.packages('leaps')
 library(leaps)
 
@@ -344,12 +345,12 @@ fit2.lm = lm(casual~atemp+weekday+hour+I(year == 2012)+holiday+humidity+season+t
 # Multiple R-squared:  0.5857,  Adjusted R-squared:  0.5843 
 # F-statistic: 437.8 on 34 and 10529 DF,  p-value: < 2.2e-16
 
-fit2.lm = lm((log(casual+1))~atemp+weekday+hour+I(year == 2012)+holiday+humidity+season+temp+I(weather == 2)+ I(weather == 3)+windspeed+workingday,data = subtrain)
+fit2.lm = lm(I(log(casual+1))~atemp+weekday+hour+I(year == 2012)+holiday+humidity+season+temp+I(weather == 2)+ I(weather == 3)+windspeed+workingday,data = subtrain)
 # Residual standard error: 0.6434 on 10529 degrees of freedom
 # Multiple R-squared:  0.8173,  Adjusted R-squared:  0.8167 
 # F-statistic:  1386 on 34 and 10529 DF,  p-value: < 2.2e-16
 
-fit2.lm = lm((log(casual+1))~atemp+weekday+hour+I(year == 2012)+holiday+humidity+season+temp+weather+windspeed+workingday,data = subtrain)
+fit2.lm = lm(I(log(casual+1))~atemp+weekday+hour+I(year == 2012)+holiday+humidity+season+temp+weather+windspeed+workingday,data = subtrain)
 # Residual standard error: 0.628 on 10844 degrees of freedom
 # Multiple R-squared:  0.8233,  Adjusted R-squared:  0.8226 
 # F-statistic:  1232 on 41 and 10844 DF,  p-value: < 2.2e-16
@@ -471,18 +472,29 @@ rmseMostHold.log
 
 # just rmse cannot verify best fit
 
-fit1.lm
-fit2.lm
+fit1.lm = lm(I(log(registered+1))~atemp+hour+I(year==2012)+humidity+season+weather+windspeed+workingday,data=subtrain)
+fit2.lm = lm(I(log(casual+1))~atemp+weekday+hour+I(year == 2012)+holiday+humidity+season+temp+weather+windspeed+workingday,data = subtrain)
+test = read.csv("test.csv")
+test= featureEngineer(test)
+head(test)
+test$datetime = strptime(test$datetime, format = "%Y-%m-%d%H:%M:%S")
+test$weekday = weekdays(test$datetime)
+test$hour = test$datetime$hour
+test$registered = predict(fit1.lm,test)
 
+# Turn the categorical variables into numeric
+test$season = as.numeric(test$season)
+test$holiday = as.numeric(test$holiday)
+test$workingday = as.numeric(test$workingday)
+test$weekday = as.numeric(test$weekday)
+test$hour = factor(test$hour)
+test$registered = exp(predict(fit1.lm,new = test))-1
 
+#test$casual = exp(predict(fit2.lm,new = test))-1
 
-
-
-
-
-
-
-
+test$count = round(test$registered)+abs(rnorm(6493,mean = 7.5,sd=5))
+submit = data.frame(datetime = test$datetime, count = test$registered)
+write.csv(submit, file= "prediction_linear.csv", row.names = FALSE)
 
 
 
